@@ -70,7 +70,7 @@ func main() {
 	budgetGroup.Post("/base-income", budgetHandler.SetBaseIncome)
 	budgetGroup.Put("/base-income", budgetHandler.SetBaseIncome)
 
-	// Expense routes
+	// Expense routess
 	expenseGroup := app.Group("/expenses")
 	expenseGroup.Use(auth.AuthMiddleware(cfg))
 	expenseGroup.Post("/", expenseHandler.AddExpense)

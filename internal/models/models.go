@@ -73,3 +73,66 @@ type ExpenseRequest struct {
 type JWTClaims struct {
 	UserID string `json:"userId"`
 }
+
+// FundType represents the type of fund
+type FundType string
+
+const (
+	FundTypeBorrowed FundType = "BORROWED"
+	FundTypeGiven    FundType = "GIVEN"
+)
+
+// Fund represents a borrowing or lending agreement
+type Fund struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID         primitive.ObjectID `bson:"userId" json:"userId"`
+	PersonName     string             `bson:"personName" json:"personName"`
+	Type           FundType           `bson:"type" json:"type"`
+	PrincipalAmount float64           `bson:"principalAmount" json:"principalAmount"`
+	StartDate      time.Time          `bson:"startDate" json:"startDate"`
+	Notes          string             `bson:"notes,omitempty" json:"notes,omitempty"`
+	CreatedAt      time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt      time.Time          `bson:"updatedAt" json:"updatedAt"`
+}
+
+// Transaction represents a partial payment for a fund
+type Transaction struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FundID    primitive.ObjectID `bson:"fundId" json:"fundId"`
+	Amount    float64            `bson:"amount" json:"amount"`
+	Date      time.Time          `bson:"date" json:"date"`
+	Note      string             `bson:"note,omitempty" json:"note,omitempty"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+}
+
+// FundRequest is the request format for fund endpoints
+type FundRequest struct {
+	PersonName      string    `json:"personName"`
+	Type            FundType  `json:"type"`
+	PrincipalAmount float64   `json:"principalAmount"`
+	StartDate       time.Time `json:"startDate"`
+	Notes           string    `json:"notes,omitempty"`
+}
+
+// TransactionRequest is the request format for transaction endpoints
+type TransactionRequest struct {
+	Amount float64   `json:"amount"`
+	Date   time.Time `json:"date"`
+	Note   string    `json:"note,omitempty"`
+}
+
+// FundResponse is the response format for fund endpoints
+type FundResponse struct {
+	ID              string       `json:"id"`
+	PersonName      string       `json:"personName"`
+	Type            FundType     `json:"type"`
+	PrincipalAmount float64      `json:"principalAmount"`
+	StartDate       time.Time    `json:"startDate"`
+	Notes           string       `json:"notes,omitempty"`
+	TotalPaid       float64      `json:"totalPaid"`
+	Outstanding     float64      `json:"outstanding"`
+	Status          string       `json:"status"`
+	Transactions    []Transaction `json:"transactions"`
+	CreatedAt       time.Time    `json:"createdAt"`
+	UpdatedAt       time.Time    `json:"updatedAt"`
+}

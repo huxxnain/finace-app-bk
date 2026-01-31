@@ -30,11 +30,13 @@ func main() {
 	// Initialize services
 	userService := services.NewUserService(database)
 	budgetService := services.NewBudgetService(database)
+	fundService := services.NewFundService(database)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userService, cfg)
 	budgetHandler := handlers.NewBudgetHandler(budgetService)
 	expenseHandler := handlers.NewExpenseHandler(budgetService)
+	fundHandler := handlers.NewFundHandler(fundService)
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -76,6 +78,18 @@ func main() {
 	expenseGroup.Post("/", expenseHandler.AddExpense)
 	expenseGroup.Put("/:expenseId", expenseHandler.UpdateExpense)
 	expenseGroup.Delete("/:expenseId", expenseHandler.DeleteExpense)
+
+	// Fund routes
+	fundGroup := app.Group("/funds")
+	fundGroup.Use(auth.AuthMiddleware(cfg))
+	fundGroup.Get("/", fundHandler.GetAllFunds)
+	fundGroup.Get("/:fundId", fundHandler.GetFundByID)
+	fundGroup.Post("/", fundHandler.CreateFund)
+	fundGroup.Put("/:fundId", fundHandler.UpdateFund)
+	fundGroup.Delete("/:fundId", fundHandler.DeleteFund)
+	fundGroup.Post("/:fundId/transactions", fundHandler.AddTransaction)
+	fundGroup.Put("/:fundId/transactions/:transactionId", fundHandler.UpdateTransaction)
+	fundGroup.Delete("/:fundId/transactions/:transactionId", fundHandler.DeleteTransaction)
 
 	// 404 handler
 	app.Use(func(c *fiber.Ctx) error {

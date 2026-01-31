@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: finance-app-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  finance-app:
+    build: .
+    container_name: finance-app
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://admin:password@mongodb:27017
+      DATABASE_NAME: finance_app
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRY_HOURS: 24
+      PORT: 3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - finance-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  finance-network:
+    driver: bridge

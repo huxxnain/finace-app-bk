@@ -57,12 +57,16 @@ type AuthResponse struct {
 // BaseIncomeRequest is the request format for setting base income
 type BaseIncomeRequest struct {
 	Amount float64 `json:"amount"`
+	Year   int     `json:"year"`
+	Month  int     `json:"month"`
 }
 
 // ExpenseRequest is the request format for expense endpoints
 type ExpenseRequest struct {
 	Title  string  `json:"title"`
 	Amount float64 `json:"amount"`
+	Year   int     `json:"year"`
+	Month  int     `json:"month"`
 }
 
 // JWTClaims represents JWT claims

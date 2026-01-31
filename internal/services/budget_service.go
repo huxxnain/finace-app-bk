@@ -76,30 +76,46 @@ func (bs *BudgetService) GetOrCreateBudget(ctx context.Context, userID string, y
 }
 
 // SetBaseIncome sets or updates the base income for a month
-func (bs *BudgetService) SetBaseIncome(ctx context.Context, userID string, year, month int, amount float64) (*models.MonthlyBudget, error) {
+func (bs *BudgetService) SetBaseIncome(
+	ctx context.Context,
+	userID string,
+	year, month int,
+	amount float64,
+) (*models.MonthlyBudget, error) {
+
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID")
 	}
 
-	// Update base income
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	result := &models.MonthlyBudget{}
-	err = bs.collection.FindOneAndUpdate(ctx,
-		bson.M{
-			"userId": objID,
-			"year":   year,
-			"month":  month,
-		},
-		bson.M{
-			"$set": bson.M{
-				"baseIncome": amount,
-				"updatedAt":  time.Now(),
-			},
-		},
-		opts,
-	).Decode(result)
+	now := time.Now()
 
+	filter := bson.M{
+		"userId": objID,
+		"year":   year,
+		"month":  month,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"baseIncome": amount,
+			"updatedAt":  now,
+		},
+		"$setOnInsert": bson.M{
+			"userId":    objID,
+			"year":      year,
+			"month":     month,
+			"expenses":  []models.Expense{},
+			"createdAt": now,
+		},
+	}
+
+	opts := options.FindOneAndUpdate().
+		SetUpsert(true).
+		SetReturnDocument(options.After)
+
+	result := &models.MonthlyBudget{}
+	err = bs.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(result)
 	if err != nil {
 		return nil, err
 	}

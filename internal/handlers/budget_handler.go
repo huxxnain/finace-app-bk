@@ -99,22 +99,24 @@ func (bh *BudgetHandler) GetBudgetByMonth(c *fiber.Ctx) error {
 // POST /budget/base-income
 func (bh *BudgetHandler) SetBaseIncome(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
-	year, month := utils.GetCurrentMonthYear()
-
 	var req models.BaseIncomeRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request format",
 		})
 	}
-
+	if req.Year <= 0 || req.Month <= 0 || req.Month > 12 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "valid year and month are required",
+		})
+	}
 	if req.Amount < 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "amount must be non-negative",
 		})
 	}
 
-	budget, err := bh.budgetService.SetBaseIncome(c.Context(), userID, year, month, req.Amount)
+	budget, err := bh.budgetService.SetBaseIncome(c.Context(), userID, req.Year, req.Month, req.Amount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

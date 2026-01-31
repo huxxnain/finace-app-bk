@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/huxxnainali/finance-app/internal/models"
 	"github.com/huxxnainali/finance-app/internal/services"
-	"github.com/huxxnainali/finance-app/internal/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -24,12 +23,17 @@ func NewExpenseHandler(budgetService *services.BudgetService) *ExpenseHandler {
 // POST /expenses
 func (eh *ExpenseHandler) AddExpense(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
-	year, month := utils.GetCurrentMonthYear()
 
 	var req models.ExpenseRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request format",
+		})
+	}
+
+	if req.Year <= 0 || req.Month <= 0 || req.Month > 12 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "valid year and month are required",
 		})
 	}
 
@@ -47,7 +51,7 @@ func (eh *ExpenseHandler) AddExpense(c *fiber.Ctx) error {
 		CreatedAt: time.Now(),
 	}
 
-	budget, err := eh.budgetService.AddExpense(c.Context(), userID, year, month, expense)
+	budget, err := eh.budgetService.AddExpense(c.Context(), userID, req.Year, req.Month, expense)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
